@@ -20,6 +20,7 @@ class addAuctionForm(forms.Form):
 class commentForm(forms.Form):
     comment = forms.CharField(label="Your Comment", max_length=200, widget=forms.Textarea(attrs={'class': 'form-control', 'style':'margin-bottom:15px;height:120px'}))
 
+
 def index(request):
     return render(request, "auctions/index.html", {
         "auctions": Auction.objects.filter(duration = True)
@@ -261,7 +262,7 @@ def closeAuction(request, auction_id):
             auction.closeBid = auction.lastBid
             auction.duration = 0
             auction.save()
-            messages.success(request, 'You have successfully closed this auction. The winner is ' + request.user.username)
+            messages.success(request, 'You have successfully closed this auction. The winner is ' + winner.user.username)
         else:
             messages.warning(request, 'Something went wrong please try again.')
 
