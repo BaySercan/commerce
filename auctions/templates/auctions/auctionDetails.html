@@ -1,0 +1,85 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if auction %}
+        {% if request.user == auction.user and user.is_authenticated and auction.duration == 1%}
+            <div>
+                <!-- <a href="" type="button" class="btn btn-sm btn-info"><i class="fa fa-edit"></i> Edit</a> -->
+                <a href="{% url 'cancelAuction' auction.id %}" type="button" class="btn btn-sm btn-danger"><i class="fa fa-times"></i> Cancel</a>
+                <a href="{% url 'closeAuction' auction.id %}" class="btn btn-sm btn-success ml-1"><i class="fa fa-thumbs-up"></i> Close</a>
+            </div>
+        {% else %}
+            {% if user.is_authenticated and auction.duration == 1%}
+                {% if in_watchlist %}
+                    <a href="{% url 'addRmvWatchlist' auction.id %}" class="btn btn-sm btn-info"><i class="fa fa-eye-slash"></i> Remove from watchlist</a>
+                {% else %}
+                    <a href="{% url 'addRmvWatchlist' auction.id %}" class="btn btn-sm btn-outline-info"><i class="fa fa-eye"></i> Add to watchlist</a>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+        {% if messages %}
+            {% for message in messages %}
+                <div {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %} style="margin-top: 15px;">{{ message }}</div>
+            {%  endfor %}
+        {% endif %}
+        <div class="card mb-3" style="margin-top: 15px;">
+            <div class="row">
+                <div class="col-md-4 col-sm-12 col-lg-4">
+                    <img src="{{ auction.image }}" class="img-fluid rounded-start" alt="{{ auction.title }}" width="400px" height="400px">
+                </div>
+                <div class="col-md-8 col-sm-12 col-lg-8">
+                    {% if auction.winner == request.user.id %}
+                        <div class="alert alert-success"><h2>CONGRATULATIONS! YOU WON THIS AUCTION..!</h2></div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h3 class="card-title" style="font-weight: 600;">{{ auction.title }}</h3>
+                        <p class="card-text"><span style="font-weight: 600;">Listed by : </span>{{ auction.user.username }}</p>
+                        <p class="card-text"><span style="font-weight: 600;">Date Created : </span>{{ auction.created |date:'d-m-Y H:i' }}</p>
+                        <p class="card-text"><span style="font-weight: 600;">Description : </span>{{ auction.description }}</p>
+                        <p class="card-text"><span style="font-weight: 600;">Category : </span><a href="{% url 'categoryListing' auction.category %}">{{ auction.categoryName }}</a></p>
+                        <p class="card-text"><span style="font-weight: 600;">Price: </span>${{ auction.lastBid }}</p>
+                        {% if auction.duration == 0 %}
+                            <h3 style="color:red">This auction is closed.</h3>
+                        {% endif %}
+                        {% if user.is_authenticated %}
+                            {% if request.user != auction.user and auction.duration == 1 %}
+                                <form action="{% url 'placeBid' auction.id%}" method="POST" >
+                                    {% csrf_token %}
+                                    <div class="input-group mb-3 col-lg-4 col-md-6 col-sm-12" style="padding-left:0;">
+                                        <input type="text" class="form-control" placeholder="Place a bid" aria-label="Recipient's username" aria-describedby="button-addon2" name="bid" style="margin-left:0;" min="{{ auction.lastBid|add:'1' }}">
+                                        <button class="btn btn-success" type="submit" id="button-addon2">Place Bid</button>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                        <p class="text-muted">
+                            <a href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in</a> or <a href="{% url 'register' %}">Register</a> to place a bid for this auction.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if user.is_authenticated and auction.duration == 1%}
+            <div class="col-12" style="margin-bottom: 15px;">
+                <form action="{% url 'addComment' auction.id %}" method="POST">
+                    {% csrf_token %}
+                    {{ commentForm }}
+                    <input type="submit" value="Send Comment" class="btn btn-sm btn-primary">
+                </form>
+            </div>
+        {% endif %}
+
+        {% if comments %}
+            <h2>Comments</h2>
+            {% for comment in comments %}
+            <div class="card text-dark bg-light col-12 mb-3" style="padding: 0;">
+                <div class="card-header" style="font-weight: 600; width: 100%;">{{ comment.user.username }} ({{ comment.created |date:'d-m-Y H:i' }})</div>
+                <div class="card-body">
+                  <p class="card-text">{{ comment.comment }}</p>
+                </div>
+              </div>
+            {% endfor %}
+        {% endif %}
+
+    {% endif %}
+{% endblock %}
