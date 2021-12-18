@@ -247,7 +247,6 @@ def placeBid(request, auction_id):
 
     return HttpResponseRedirect(reverse("auctionDetails", args=(auction_id,)))
 
-
 @login_required
 def closeAuction(request, auction_id):
     auction = Auction.objects.get(id=auction_id)
